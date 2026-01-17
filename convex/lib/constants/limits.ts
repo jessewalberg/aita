@@ -1,0 +1,5 @@
+export const LIMITS = {
+  FREE_SINGLE_PER_DAY: 3,
+  MIN_SITUATION_LENGTH: 50,
+  MAX_SITUATION_LENGTH: 5000,
+} as const;
