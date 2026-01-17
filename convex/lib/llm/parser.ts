@@ -35,3 +35,31 @@ export function fallbackJudgeResponse(): JudgeResponse {
     keyPoints: ["Try rephrasing your situation"],
   };
 }
+
+export const ChiefJudgeResponseSchema = z.object({
+  verdict: z.enum(["YTA", "NTA", "ESH", "NAH", "INFO"]),
+  confidence: z.number().min(50).max(95),
+  summary: z.string(),
+  reasoning: z.string(),
+  keyPoints: z.array(z.string()),
+  synthesis: z.string(),
+  dissent: z.string(),
+  panelSplit: z.string(),
+});
+
+export type ChiefJudgeResponse = z.infer<typeof ChiefJudgeResponseSchema>;
+
+export function parseChiefJudgeResponse(raw: string): ChiefJudgeResponse | null {
+  try {
+    let content = raw.trim();
+    if (content.startsWith("```")) {
+      content = content
+        .replace(/```json?\n?/g, "")
+        .replace(/```$/g, "")
+        .trim();
+    }
+    return ChiefJudgeResponseSchema.parse(JSON.parse(content));
+  } catch {
+    return null;
+  }
+}
