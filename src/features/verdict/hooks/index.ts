@@ -1,1 +1,1 @@
-// Verdict hooks
+export { useSubmitVerdict } from './useSubmitVerdict'
