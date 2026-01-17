@@ -1,0 +1,14 @@
+:root {
+  /* Judge colors */
+  --judge-claude: 217 119 6;    /* Amber */
+  --judge-gpt: 5 150 105;       /* Emerald */
+  --judge-gemini: 37 99 235;    /* Blue */
+  --judge-chief: 124 58 237;    /* Violet */
+  
+  /* Verdict colors */
+  --verdict-yta: 220 38 38;     /* Red */
+  --verdict-nta: 5 150 105;     /* Emerald */
+  --verdict-esh: 217 119 6;     /* Amber */
+  --verdict-nah: 37 99 235;     /* Blue */
+  --verdict-info: 113 113 122;  /* Zinc */
+}
