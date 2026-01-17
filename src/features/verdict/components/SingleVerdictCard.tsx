@@ -4,25 +4,15 @@ import { ConfidenceMeter } from './ConfidenceMeter'
 import { ShareActions } from './ShareActions'
 import { Button } from '@/components/ui/button'
 import { Link } from '@tanstack/react-router'
-import {
-  VERDICT_CONFIG,
-  type VerdictCode,
-} from 'convex/lib/constants/verdicts'
+import { VERDICT_CONFIG } from 'convex/lib/constants/verdicts'
+import { normalizeVerdictCode, type SingleVerdict } from './verdictUtils'
 
 interface SingleVerdictCardProps {
-  verdict: {
-    verdict: string
-    confidence: number
-    summary: string
-    reasoning: string
-    keyPoints: string[]
-    shareId: string
-  }
-  situation: string
+  verdict: SingleVerdict
 }
 
 export function SingleVerdictCard({ verdict }: SingleVerdictCardProps) {
-  const verdictCode = verdict.verdict as VerdictCode
+  const verdictCode = normalizeVerdictCode(verdict.verdict)
 
   return (
     <div className="space-y-6">

@@ -10,8 +10,14 @@ interface ModeSelectorProps {
 }
 
 export function ModeSelector({ mode, onModeChange, isPro }: ModeSelectorProps) {
+  const handleChange = (value: string) => {
+    if (value === 'single' || value === 'panel') {
+      onModeChange(value)
+    }
+  }
+
   return (
-    <Tabs value={mode} onValueChange={(v) => onModeChange(v as any)}>
+    <Tabs value={mode} onValueChange={handleChange}>
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="single" className="gap-2">
           <User className="h-4 w-4" />
