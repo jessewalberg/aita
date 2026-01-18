@@ -16,10 +16,8 @@ function getEnv(key: string): string | undefined {
     return process.env[key]
   }
   // Try import.meta.env (Vite)
-  // @ts-expect-error - import.meta.env may not be typed
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-    // @ts-expect-error - import.meta.env may not be typed
-    return import.meta.env[key]
+  if (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env as Record<string, string>)[key]) {
+    return (import.meta.env as Record<string, string>)[key]
   }
   return undefined
 }
