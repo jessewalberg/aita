@@ -167,9 +167,3 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for:
 - Rate limiting logic
 - Security measures
 - Directory structure
-
----
-
-## License
-
-MIT
