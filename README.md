@@ -159,7 +159,7 @@ pnpm deploy:convex
 
 ## Architecture
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for:
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for
 
 - System diagrams (Mermaid)
 - Database schema
