@@ -1,13 +1,27 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-    "routes": [
+  "routes": [
     {
       "pattern": "aita.jessewalberg.com",
       "custom_domain": true
-    },
+    }
   ],
   "name": "aita",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry"
+  "main": "@tanstack/react-start/server-entry",
+  "observability": {
+    "enabled": true
+  },
+  // Non-sensitive env vars (committed to repo)
+  "vars": {
+    "WORKOS_REDIRECT_URI": "https://aita.jessewalberg.com/api/auth/callback",
+    "VITE_WORKOS_REDIRECT_URI": "https://aita.jessewalberg.com/api/auth/callback"
+  }
+  // Sensitive vars set via: wrangler secret put <NAME>
+  // - WORKOS_CLIENT_ID
+  // - WORKOS_API_KEY
+  // - WORKOS_COOKIE_PASSWORD
+  // - VITE_CONVEX_URL
+  // - VITE_WORKOS_CLIENT_ID
 }
