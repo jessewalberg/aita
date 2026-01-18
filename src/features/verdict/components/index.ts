@@ -1,4 +1,3 @@
-export { ModeSelector } from './ModeSelector'
 export { VerdictForm } from './VerdictForm'
 export { VerdictBadge } from './VerdictBadge'
 export { ConfidenceMeter } from './ConfidenceMeter'

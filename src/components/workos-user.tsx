@@ -1,41 +1,54 @@
-import { useAuth } from '@workos-inc/authkit-react'
+import type { User } from '@workos-inc/node'
 
-export default function SignInButton({ large }: { large?: boolean }) {
-  const { user, isLoading, signIn, signOut } = useAuth()
+interface SignInButtonProps {
+  large?: boolean
+  user?: User | null
+  signInUrl?: string
+}
 
+export default function SignInButton({
+  large,
+  user,
+  signInUrl,
+}: SignInButtonProps) {
   const buttonClasses = `${
     large ? 'px-6 py-3 text-base' : 'px-4 py-2 text-sm'
-  } bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed`
+  } bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed`
 
   if (user) {
     return (
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 text-sm text-white/80">
           {user.profilePictureUrl && (
             <img
               src={user.profilePictureUrl}
-              alt={`Avatar of ${user.firstName} ${user.lastName}`}
-              className="w-10 h-10 rounded-full"
+              alt={`${user.firstName || 'User'}`}
+              className="w-8 h-8 rounded-full"
             />
           )}
-          {user.firstName} {user.lastName}
+          <span>{user.firstName || user.email}</span>
         </div>
-        <button onClick={() => signOut()} className={buttonClasses}>
+        <a
+          href="/api/auth/logout"
+          className="px-3 py-1.5 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+        >
           Sign Out
-        </button>
+        </a>
       </div>
     )
   }
 
+  if (!signInUrl) {
+    return (
+      <button className={buttonClasses} disabled>
+        Loading...
+      </button>
+    )
+  }
+
   return (
-    <button
-      onClick={() => {
-        signIn()
-      }}
-      className={buttonClasses}
-      disabled={isLoading}
-    >
-      Sign In {large && 'with AuthKit'}
-    </button>
+    <a href={signInUrl} className={buttonClasses}>
+      Sign In
+    </a>
   )
 }

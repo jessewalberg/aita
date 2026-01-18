@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -8,46 +8,97 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardTitle,
 } from '@/components/ui/card'
-import { ModeSelector } from './ModeSelector'
 import { useSubmitVerdict } from '../hooks/useSubmitVerdict'
 import { useVisitorId } from '@/hooks/useVisitorId'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface VerdictFormProps {
-  remainingSingle: number
   userId?: string
-  isPro: boolean
+  isPro?: boolean
+  remaining?: number
+  limit?: number
+  isSignedIn?: boolean
 }
 
-export function VerdictForm({ remainingSingle, userId, isPro }: VerdictFormProps) {
+export function VerdictForm({
+  userId,
+  isPro,
+  remaining = 0,
+  limit = 2,
+  isSignedIn = false,
+}: VerdictFormProps) {
   const [situation, setSituation] = useState('')
-  const [mode, setMode] = useState<'single' | 'panel'>(
-    isPro ? 'panel' : 'single'
-  )
+  const [panelStep, setPanelStep] = useState(0)
   const visitorId = useVisitorId()
   const { mutate: submit, isPending } = useSubmitVerdict()
 
   const chars = situation.length
   const isValid = chars >= 50 && chars <= 5000
-  const canSubmit =
-    isValid && !isPending && (mode === 'panel' || remainingSingle > 0)
+  const hasRemaining = isPro || remaining > 0
+  const canSubmit = isValid && !isPending && (userId || visitorId) && hasRemaining
 
-  function handleSubmit(e: React.FormEvent) {
+  const panelSteps = useMemo(
+    () => [
+      'Judge Claude is deliberating...',
+      'Judge GPT is analyzing...',
+      'Judge Gemini is considering...',
+      'Chief Judge is synthesizing...',
+    ],
+    []
+  )
+
+  useEffect(() => {
+    if (!isPending) {
+      setPanelStep(0)
+      return
+    }
+
+    const interval = window.setInterval(() => {
+      setPanelStep((current) => (current + 1) % panelSteps.length)
+    }, 1200)
+
+    return () => window.clearInterval(interval)
+  }, [isPending, panelSteps.length])
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!canSubmit) return
-    submit({ situation: situation.trim(), mode, visitorId, userId, isPro })
+
+    const result = await submit({
+      situation: situation.trim(),
+      visitorId,
+      userId,
+      isPro,
+    })
+
+    if (!result.success) {
+      if (result.error === 'RATE_LIMITED') {
+        toast.error('Daily limit reached', {
+          description: isSignedIn
+            ? "You've used all 3 free verdicts today. Upgrade to Pro for unlimited."
+            : "You've used all 2 free verdicts today. Sign in for 1 more or upgrade to Pro.",
+        })
+      } else {
+        toast.error('Something went wrong', {
+          description: 'The judges are unavailable. Please try again.',
+        })
+      }
+    }
   }
 
   return (
     <Card className="border-2">
       <CardHeader className="pb-4">
-        <ModeSelector mode={mode} onModeChange={setMode} isPro={isPro} />
-        <CardDescription className="mt-3">
-          {mode === 'single'
-            ? '1 AI judge delivers a quick verdict'
-            : '3 AI judges debate, Chief Judge rules'}
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Panel Mode
+        </CardTitle>
+        <CardDescription>
+          3 AI judges debate, Chief Judge rules
         </CardDescription>
       </CardHeader>
 
@@ -77,19 +128,37 @@ export function VerdictForm({ remainingSingle, userId, isPro }: VerdictFormProps
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {mode === 'panel' ? 'Consulting the Panel...' : 'Analyzing...'}
+                Consulting the Panel...
               </>
-            ) : mode === 'panel' ? (
-              'Summon the Panel'
+            ) : !hasRemaining ? (
+              'Daily Limit Reached'
             ) : (
-              'Get Verdict'
+              'Summon the Panel'
             )}
           </Button>
 
-          {!isPro && mode === 'single' && (
+          {!isPro && (
             <p className="text-center text-xs text-muted-foreground">
-              {remainingSingle} free verdicts remaining today
+              {remaining} of {limit} free verdicts remaining today
+              {!isSignedIn && ' • Sign in for 1 more'}
             </p>
+          )}
+
+          {isPending && (
+            <div className="rounded-lg border border-dashed border-muted-foreground/40 p-3 text-xs text-muted-foreground space-y-1">
+              {panelSteps.map((step, index) => (
+                <div
+                  key={step}
+                  className={cn(
+                    'flex items-center gap-2 transition-colors',
+                    index === panelStep && 'text-foreground'
+                  )}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60" />
+                  <span>{step}</span>
+                </div>
+              ))}
+            </div>
           )}
         </form>
       </CardContent>

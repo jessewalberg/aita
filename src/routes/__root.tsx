@@ -1,12 +1,16 @@
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import Header from '../components/Header'
-
-import WorkOSProvider from '../integrations/workos/provider'
-
-import ConvexProvider from '../integrations/convex/provider'
+import { Toaster } from '../components/ui/sonner'
+import { ConvexClientProvider } from '../components/ConvexClientProvider'
+import { getAuth, getSignInUrl } from '../authkit'
 
 import appCss from '../styles.css?url'
 
@@ -21,7 +25,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'AITA Verdict',
       },
     ],
     links: [
@@ -32,8 +36,37 @@ export const Route = createRootRoute({
     ],
   }),
 
+  loader: async () => {
+    const [auth, signInUrl] = await Promise.all([getAuth(), getSignInUrl()])
+    return { auth, signInUrl }
+  },
+
+  component: RootComponent,
   shellComponent: RootDocument,
 })
+
+function RootComponent() {
+  const { auth, signInUrl } = Route.useLoaderData()
+
+  return (
+    <ConvexClientProvider user={auth.user}>
+      <Header user={auth.user} signInUrl={signInUrl} />
+      <Outlet />
+      <TanStackDevtools
+        config={{
+          position: 'bottom-right',
+        }}
+        plugins={[
+          {
+            name: 'Tanstack Router',
+            render: <TanStackRouterDevtoolsPanel />,
+          },
+        ]}
+      />
+      <Toaster position="top-center" />
+    </ConvexClientProvider>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
@@ -42,23 +75,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <WorkOSProvider>
-          <ConvexProvider>
-            <Header />
-            {children}
-            <TanStackDevtools
-              config={{
-                position: 'bottom-right',
-              }}
-              plugins={[
-                {
-                  name: 'Tanstack Router',
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-              ]}
-            />
-          </ConvexProvider>
-        </WorkOSProvider>
+        {children}
         <Scripts />
       </body>
     </html>

@@ -12,6 +12,39 @@ import { Card, CardContent } from '@/components/ui/card'
 export const Route = createFileRoute('/verdict/$shareId')({
   ssr: false,
   component: VerdictPage,
+  head: ({ params }) => ({
+    meta: [
+      {
+        title: `AITA Verdict - ${params.shareId}`,
+      },
+      {
+        name: 'description',
+        content:
+          'Read the panel ruling and see how each judge weighed the facts.',
+      },
+      {
+        property: 'og:title',
+        content: `AITA Verdict - ${params.shareId}`,
+      },
+      {
+        property: 'og:description',
+        content:
+          'Read the panel ruling and see how each judge weighed the facts.',
+      },
+      {
+        property: 'og:type',
+        content: 'article',
+      },
+      {
+        property: 'og:url',
+        content: `/verdict/${params.shareId}`,
+      },
+      {
+        property: 'og:image',
+        content: `/og-default.svg?shareId=${params.shareId}`,
+      },
+    ],
+  }),
 })
 
 function VerdictPage() {

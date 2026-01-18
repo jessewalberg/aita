@@ -58,12 +58,13 @@ convex/
     prompts/chiefJudge.ts  # Synthesis prompt
     llm/models.ts          # Judge definitions
 
-app/features/
+src/features/
   verdict/components/
     PanelDisplay.tsx       # Full panel UI
     JudgeCard.tsx          # Individual judge
-    SynthesisCard.tsx      # Chief's ruling
     DissentSection.tsx     # Minority opinion
+    VerdictForm.tsx        # Mode selector + submission form
+    SingleVerdictCard.tsx  # Single-mode verdict UI
 ```
 
 ### Panel Flow

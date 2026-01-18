@@ -1,5 +1,6 @@
 import { mutation } from "../../_generated/server";
 import { v } from "convex/values";
+import { LIMITS } from "../../lib/constants/limits";
 
 function getUtcDateString(): string {
   return new Date().toISOString().slice(0, 10);
@@ -8,7 +9,6 @@ function getUtcDateString(): string {
 export const increment = mutation({
   args: {
     identifier: v.string(),
-    type: v.union(v.literal("single"), v.literal("panel")),
   },
   handler: async (ctx, args) => {
     const date = getUtcDateString();
@@ -20,22 +20,103 @@ export const increment = mutation({
       .unique();
 
     if (!existing) {
-      const singleCount = args.type === "single" ? 1 : 0;
-      const panelCount = args.type === "panel" ? 1 : 0;
       await ctx.db.insert("dailyUsage", {
         identifier: args.identifier,
         date,
-        singleCount,
-        panelCount,
+        singleCount: 0,
+        panelCount: 1,
       });
       return;
     }
 
     await ctx.db.patch(existing._id, {
-      singleCount:
-        args.type === "single" ? existing.singleCount + 1 : existing.singleCount,
-      panelCount:
-        args.type === "panel" ? existing.panelCount + 1 : existing.panelCount,
+      panelCount: existing.panelCount + 1,
     });
+  },
+});
+
+/**
+ * Atomically check and increment rate limit.
+ * Returns { allowed: true } if under limit, { allowed: false } if rate limited.
+ * This prevents race conditions by doing check + increment in a single transaction.
+ *
+ * Limits:
+ * - Anonymous (visitor:xxx): 2/day
+ * - Signed in (user:xxx): 3/day
+ * - Pro users: unlimited (check isPro before calling)
+ */
+export const checkAndIncrement = mutation({
+  args: {
+    identifier: v.string(),
+    isPro: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    // Pro users have unlimited access
+    if (args.isPro) {
+      // Still track usage for analytics
+      const date = getUtcDateString();
+      const existing = await ctx.db
+        .query("dailyUsage")
+        .withIndex("by_identifier_date", (q) =>
+          q.eq("identifier", args.identifier).eq("date", date)
+        )
+        .unique();
+
+      if (!existing) {
+        await ctx.db.insert("dailyUsage", {
+          identifier: args.identifier,
+          date,
+          singleCount: 0,
+          panelCount: 1,
+        });
+      } else {
+        await ctx.db.patch(existing._id, {
+          panelCount: existing.panelCount + 1,
+        });
+      }
+
+      return { allowed: true, remaining: undefined };
+    }
+
+    const date = getUtcDateString();
+    const existing = await ctx.db
+      .query("dailyUsage")
+      .withIndex("by_identifier_date", (q) =>
+        q.eq("identifier", args.identifier).eq("date", date)
+      )
+      .unique();
+
+    const currentCount = existing?.panelCount ?? 0;
+    const isSignedIn = args.identifier.startsWith("user:");
+    const limit = isSignedIn ? LIMITS.SIGNED_IN_PER_DAY : LIMITS.ANONYMOUS_PER_DAY;
+
+    // Check limit
+    if (currentCount >= limit) {
+      return { allowed: false, remaining: 0 };
+    }
+
+    if (!existing) {
+      await ctx.db.insert("dailyUsage", {
+        identifier: args.identifier,
+        date,
+        singleCount: 0,
+        panelCount: 1,
+      });
+      return {
+        allowed: true,
+        remaining: limit - 1,
+      };
+    }
+
+    const newPanelCount = existing.panelCount + 1;
+
+    await ctx.db.patch(existing._id, {
+      panelCount: newPanelCount,
+    });
+
+    return {
+      allowed: true,
+      remaining: limit - newPanelCount,
+    };
   },
 });

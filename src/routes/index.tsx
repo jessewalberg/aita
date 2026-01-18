@@ -1,12 +1,67 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 import { Gavel, Scale, Sparkles, ArrowRight } from 'lucide-react'
 import { VerdictForm } from '@/features/verdict/components/VerdictForm'
+import { useVisitorId } from '@/hooks/useVisitorId'
+import { Route as RootRoute } from './__root'
 
-export const Route = createFileRoute('/')({ component: App })
+export const Route = createFileRoute('/')({
+  component: App,
+  head: () => ({
+    meta: [
+      {
+        title: 'AITA Verdict - The Panel Will See You Now',
+      },
+      {
+        name: 'description',
+        content: '3 AI judges. 1 ruling. Your verdict awaits.',
+      },
+      {
+        property: 'og:title',
+        content: 'AITA Verdict - The Panel Will See You Now',
+      },
+      {
+        property: 'og:description',
+        content: '3 AI judges. 1 ruling. Your verdict awaits.',
+      },
+      {
+        property: 'og:image',
+        content: '/og-default.svg',
+      },
+      {
+        property: 'og:type',
+        content: 'website',
+      },
+    ],
+  }),
+})
 
 function App() {
-  const remainingSingle = 3
-  const isPro = false
+  // Get auth from root loader
+  const { auth } = RootRoute.useLoaderData()
+  const user = auth.user
+
+  const visitorId = useVisitorId()
+  const userId = user?.id
+  const identifier = userId ? `user:${userId}` : visitorId
+
+  // Query usage when we have an identifier
+  const usage = useQuery(
+    api.functions.rateLimit.queries.getUsage,
+    identifier ? { identifier } : 'skip'
+  )
+
+  // Query user record when logged in (for Pro status)
+  const userRecord = useQuery(
+    api.functions.users.queries.getByWorkosUserId,
+    userId ? { workosUserId: userId } : 'skip'
+  )
+
+  const isPro = userRecord?.tier === 'pro'
+  const isSignedIn = !!userId
+  const dailyLimit = isSignedIn ? 3 : 2
+  const remaining = usage?.remaining ?? dailyLimit
 
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-hidden">
@@ -17,7 +72,7 @@ function App() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.08),_transparent_55%)]" />
       </div>
 
-      <main className="relative mx-auto max-w-6xl px-6 pb-20 pt-16">
+      <main className="relative mx-auto max-w-6xl px-6 pb-20 pt-24">
         <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/70 font-mono">
@@ -66,14 +121,12 @@ function App() {
           <div className="lg:pt-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-700 delay-150">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
               <VerdictForm
-                remainingSingle={remainingSingle}
+                userId={userId}
                 isPro={isPro}
+                remaining={remaining}
+                limit={dailyLimit}
+                isSignedIn={isSignedIn}
               />
-              {!isPro && (
-                <p className="mt-4 text-xs text-white/60 text-center">
-                  Upgrade to unlock Panel Mode and priority deliberation.
-                </p>
-              )}
             </div>
           </div>
         </div>
