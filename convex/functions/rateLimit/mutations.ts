@@ -43,16 +43,17 @@ export const increment = mutation({
  * Limits:
  * - Anonymous (visitor:xxx): 2/day
  * - Signed in (user:xxx): 3/day
- * - Pro users: unlimited (check isPro before calling)
+ * - Pro/Super Admin: unlimited (hasUnlimitedAccess=true)
  */
 export const checkAndIncrement = mutation({
   args: {
     identifier: v.string(),
-    isPro: v.optional(v.boolean()),
+    // Whether the user has unlimited access (computed by caller using permission helpers)
+    hasUnlimitedAccess: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    // Pro users have unlimited access
-    if (args.isPro) {
+    // Users with unlimited access (pro, super_admin) are not rate limited
+    if (args.hasUnlimitedAccess) {
       // Still track usage for analytics
       const date = getUtcDateString();
       const existing = await ctx.db

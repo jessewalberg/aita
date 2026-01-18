@@ -189,7 +189,7 @@ function StatsPage() {
                   }
 
                   return (
-                    <div key={stat.modelName} className="space-y-3">
+                    <div key={stat.modelId} className="space-y-3">
                       <div className="flex items-center gap-3">
                         <JudgeAvatar name={stat.modelName} size="sm" />
                         <div>

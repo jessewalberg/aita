@@ -2,12 +2,15 @@ import { useState } from 'react'
 import { useAction } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'
 import { api } from '../../../../convex/_generated/api'
+import type { Role } from '../../../../convex/lib/permissions'
 
 type SubmitPayload = {
   situation: string
   visitorId?: string
   userId?: string
-  isPro?: boolean
+  userTier?: 'free' | 'pro'
+  userRole?: Role
+  isPrivate?: boolean
 }
 
 type SubmitResult = {
@@ -29,7 +32,9 @@ export function useSubmitVerdict() {
         situation: payload.situation,
         visitorId: payload.visitorId,
         userId: payload.userId,
-        isPro: payload.isPro,
+        userTier: payload.userTier,
+        userRole: payload.userRole,
+        isPrivate: payload.isPrivate,
       })
 
       // Navigate to verdict page on success

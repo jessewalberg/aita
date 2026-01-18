@@ -21,6 +21,7 @@ import {
   type ChiefJudgeResponse,
   type JudgeResponse,
 } from "../../lib/llm/parser";
+import { hasUnlimitedVerdicts } from "../../lib/permissions";
 
 // Lazy client creation to avoid module-load-time errors
 let _client: ReturnType<typeof createLLMClient> | null = null;
@@ -42,7 +43,14 @@ export const generatePanelVerdict = action({
     situation: v.string(),
     visitorId: v.optional(v.string()),
     userId: v.optional(v.string()),
-    isPro: v.optional(v.boolean()),
+    // User billing tier
+    userTier: v.optional(v.union(v.literal("free"), v.literal("pro"))),
+    // User permission role
+    userRole: v.optional(
+      v.union(v.literal("user"), v.literal("pro"), v.literal("admin"))
+    ),
+    // Whether to keep this verdict private (default: false = public)
+    isPrivate: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const start = Date.now();
@@ -52,16 +60,22 @@ export const generatePanelVerdict = action({
     }
     const identifier = args.userId ? `user:${args.userId}` : args.visitorId!;
 
+    // Build user record for permission check
+    const userRecord = args.userTier
+      ? { tier: args.userTier, role: args.userRole }
+      : null;
+    const hasUnlimitedAccess = hasUnlimitedVerdicts(userRecord);
+
     // Atomic rate limit check and increment
     const rateCheck = await ctx.runMutation(
       api.functions.rateLimit.mutations.checkAndIncrement,
-      { identifier, isPro: args.isPro }
+      { identifier, hasUnlimitedAccess }
     );
     if (!rateCheck.allowed) {
       throw new Error("RATE_LIMITED");
     }
 
-    // Run all 3 judges in parallel
+    // Run all 4 judges in parallel
     const judgePromises = JUDGES.map(async (judge) => {
       try {
         const response = await getClient().chat.completions.create({
@@ -145,8 +159,8 @@ export const generatePanelVerdict = action({
       reasoning: chiefResult.reasoning,
       keyPoints: chiefResult.keyPoints,
       shareId,
-      isPublic: false,
-      isPro: args.isPro ?? false,
+      isPublic: !args.isPrivate,
+      isPro: hasUnlimitedAccess,
       userId: args.userId,
       visitorId: args.userId ? undefined : args.visitorId,
       latencyMs: Date.now() - start,
@@ -173,37 +187,78 @@ function createFallbackChiefResult(
   panel: PanelJudgeResult[]
 ): ChiefJudgeResponse {
   const votes: Record<string, number> = {};
+  const confidenceByVerdict: Record<string, number[]> = {};
+
   for (const p of panel) {
     votes[p.verdict] = (votes[p.verdict] || 0) + 1;
+    if (!confidenceByVerdict[p.verdict]) {
+      confidenceByVerdict[p.verdict] = [];
+    }
+    confidenceByVerdict[p.verdict].push(p.confidence);
   }
+
   const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
   const topCount = sorted[0]?.[1] ?? 0;
-  const isThreeWay = sorted.length === 3 && topCount === 1;
+  const secondCount = sorted[1]?.[1] ?? 0;
+  const numJudges = panel.length; // 4 judges
 
-  if (isThreeWay) {
+  // Check for 2-2 tie
+  if (topCount === 2 && secondCount === 2) {
+    // Tie-breaker: use average confidence
+    const firstVerdict = sorted[0][0];
+    const secondVerdict = sorted[1][0];
+    const avgFirst =
+      confidenceByVerdict[firstVerdict].reduce((a, b) => a + b, 0) /
+      confidenceByVerdict[firstVerdict].length;
+    const avgSecond =
+      confidenceByVerdict[secondVerdict].reduce((a, b) => a + b, 0) /
+      confidenceByVerdict[secondVerdict].length;
+
+    const winner = avgFirst >= avgSecond ? firstVerdict : secondVerdict;
+
+    return {
+      verdict: winner as ChiefJudgeResponse["verdict"],
+      confidence: 55,
+      summary: "Panel tied 2-2. Chief broke the tie based on confidence.",
+      reasoning: "With a 2-2 split, the tie was broken by weighing confidence levels.",
+      keyPoints: ["Tie-breaker by confidence"],
+      synthesis: "Fallback tie-breaking synthesis.",
+      dissent: "Two judges disagreed with the final ruling.",
+      panelSplit: "2-2 (tie broken)",
+    };
+  }
+
+  // Check for no consensus (4-way or 3-way split)
+  const isNoConsensus = topCount === 1;
+  if (isNoConsensus) {
     return {
       verdict: "INFO",
-      confidence: 55,
-      summary: "Panel split 1-1-1.",
+      confidence: 50,
+      summary: "Panel split with no majority.",
       reasoning: "No consensus; fallback to INFO.",
       keyPoints: ["No majority decision"],
       synthesis: "Fallback synthesis.",
       dissent: "",
-      panelSplit: "1-1-1",
+      panelSplit: "split",
     };
   }
 
+  // Clear majority (4-0, 3-1, or 2-1-1)
   const winner = sorted[0]?.[0] ?? "INFO";
-  const panelSplit = `${topCount}-${3 - topCount}`;
+  const minorityCount = numJudges - topCount;
+  const panelSplit = `${topCount}-${minorityCount}`;
+  const isUnanimous = topCount === numJudges;
 
   return {
     verdict: winner as ChiefJudgeResponse["verdict"],
-    confidence: 60,
-    summary: `Panel ruled ${panelSplit}.`,
+    confidence: isUnanimous ? 70 : topCount === 3 ? 65 : 60,
+    summary: isUnanimous
+      ? "Panel ruled unanimously."
+      : `Panel ruled ${panelSplit}.`,
     reasoning: "Verdict based on majority vote.",
-    keyPoints: ["Majority decision"],
+    keyPoints: [isUnanimous ? "Unanimous decision" : "Majority decision"],
     synthesis: "Fallback synthesis.",
-    dissent: topCount === 3 ? "" : "Minority judge(s) disagreed.",
+    dissent: isUnanimous ? "" : "Minority judge(s) disagreed.",
     panelSplit,
   };
 }

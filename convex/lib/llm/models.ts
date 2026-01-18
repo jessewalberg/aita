@@ -1,6 +1,8 @@
+// OpenRouter model IDs - verified available models
+// See: https://openrouter.ai/models
 export const JUDGES = [
   {
-    id: "anthropic/claude-3-5-haiku-20241022",
+    id: "anthropic/claude-3.5-haiku",
     name: "Claude",
     personality: "Empathetic",
     tagline: "Considers emotional context",
@@ -18,7 +20,7 @@ export const JUDGES = [
     textClass: "text-emerald-700",
   },
   {
-    id: "google/gemini-2.0-flash-exp",
+    id: "google/gemini-2.0-flash-001",
     name: "Gemini",
     personality: "Practical",
     tagline: "Seeks real-world solutions",
@@ -26,10 +28,19 @@ export const JUDGES = [
     bgClass: "bg-blue-100",
     textClass: "text-blue-700",
   },
+  {
+    id: "x-ai/grok-3-mini",
+    name: "Grok",
+    personality: "Skeptical",
+    tagline: "Questions motives and spots inconsistencies",
+    color: "#E11D48",
+    bgClass: "bg-rose-100",
+    textClass: "text-rose-700",
+  },
 ] as const;
 
 export const CHIEF_JUDGE = {
-  id: "anthropic/claude-3-5-sonnet-20241022",
+  id: "anthropic/claude-3.5-sonnet",
   name: "Chief Judge",
 };
 

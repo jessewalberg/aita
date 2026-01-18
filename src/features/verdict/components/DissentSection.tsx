@@ -9,13 +9,19 @@ export function DissentSection({
 }) {
   if (!dissent) return null
 
+  // Check if multiple dissenters (contains comma)
+  const hasMultipleDissenters = dissenterName?.includes(',')
+  const title = hasMultipleDissenters
+    ? `Dissenting Opinions — Judges ${dissenterName}`
+    : `Dissenting Opinion${dissenterName ? ` — Judge ${dissenterName}` : ''}`
+
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
       <div className="flex gap-3">
         <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div>
           <h4 className="font-semibold text-amber-800 text-sm mb-1">
-            Dissenting Opinion{dissenterName && ` — Judge ${dissenterName}`}
+            {title}
           </h4>
           <p className="text-sm text-amber-700">{dissent}</p>
         </div>

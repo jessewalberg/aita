@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { ConvexHttpClient } from 'convex/browser'
+import { api } from '../../../../convex/_generated/api'
 import { getConfig } from '../../../authkit/ssr/config'
 import { saveSession } from '../../../authkit/ssr/session'
 import { getWorkOS } from '../../../authkit/ssr/workos'
@@ -45,6 +47,21 @@ export const Route = createFileRoute('/api/auth/callback')({
 
             if (!accessToken || !refreshToken) {
               throw new Error('Response is missing tokens')
+            }
+
+            // Upsert user in Convex
+            try {
+              const convexUrl = process.env.VITE_CONVEX_URL
+              if (convexUrl) {
+                const convex = new ConvexHttpClient(convexUrl)
+                await convex.mutation(api.functions.users.mutations.upsertOnLogin, {
+                  workosUserId: user.id,
+                  email: user.email,
+                })
+              }
+            } catch (e) {
+              console.error('Failed to upsert user in Convex:', e)
+              // Don't fail login if Convex upsert fails
             }
 
             // Save session and get cookie header

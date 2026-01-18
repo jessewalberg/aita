@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Card,
@@ -15,10 +16,13 @@ import { useVisitorId } from '@/hooks/useVisitorId'
 import { Loader2, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import type { Role } from '../../../../convex/lib/permissions'
 
 interface VerdictFormProps {
   userId?: string
-  isPro?: boolean
+  userTier?: 'free' | 'pro'
+  userRole?: Role
+  hasUnlimitedAccess?: boolean
   remaining?: number
   limit?: number
   isSignedIn?: boolean
@@ -26,19 +30,22 @@ interface VerdictFormProps {
 
 export function VerdictForm({
   userId,
-  isPro,
+  userTier,
+  userRole,
+  hasUnlimitedAccess = false,
   remaining = 0,
   limit = 2,
   isSignedIn = false,
 }: VerdictFormProps) {
   const [situation, setSituation] = useState('')
+  const [isPrivate, setIsPrivate] = useState(false)
   const [panelStep, setPanelStep] = useState(0)
   const visitorId = useVisitorId()
   const { mutate: submit, isPending } = useSubmitVerdict()
 
   const chars = situation.length
   const isValid = chars >= 50 && chars <= 5000
-  const hasRemaining = isPro || remaining > 0
+  const hasRemaining = hasUnlimitedAccess || remaining > 0
   const canSubmit = isValid && !isPending && (userId || visitorId) && hasRemaining
 
   const panelSteps = useMemo(
@@ -46,6 +53,7 @@ export function VerdictForm({
       'Judge Claude is deliberating...',
       'Judge GPT is analyzing...',
       'Judge Gemini is considering...',
+      'Judge Grok is investigating...',
       'Chief Judge is synthesizing...',
     ],
     []
@@ -72,7 +80,9 @@ export function VerdictForm({
       situation: situation.trim(),
       visitorId,
       userId,
-      isPro,
+      userTier,
+      userRole,
+      isPrivate,
     })
 
     if (!result.success) {
@@ -98,7 +108,7 @@ export function VerdictForm({
           Panel Mode
         </CardTitle>
         <CardDescription>
-          3 AI judges debate, Chief Judge rules
+          4 AI judges debate, Chief Judge rules
         </CardDescription>
       </CardHeader>
 
@@ -124,6 +134,21 @@ export function VerdictForm({
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="isPrivate"
+              checked={isPrivate}
+              onCheckedChange={(checked) => setIsPrivate(checked === true)}
+              disabled={isPending}
+            />
+            <label
+              htmlFor="isPrivate"
+              className="text-sm text-muted-foreground cursor-pointer select-none"
+            >
+              Keep my verdict private
+            </label>
+          </div>
+
           <Button type="submit" disabled={!canSubmit} className="w-full" size="lg">
             {isPending ? (
               <>
@@ -137,7 +162,7 @@ export function VerdictForm({
             )}
           </Button>
 
-          {!isPro && (
+          {!hasUnlimitedAccess && (
             <p className="text-center text-xs text-muted-foreground">
               {remaining} of {limit} free verdicts remaining today
               {!isSignedIn && ' • Sign in for 1 more'}

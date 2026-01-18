@@ -16,6 +16,7 @@ import type * as functions_rateLimit_index from "../functions/rateLimit/index.js
 import type * as functions_rateLimit_mutations from "../functions/rateLimit/mutations.js";
 import type * as functions_rateLimit_queries from "../functions/rateLimit/queries.js";
 import type * as functions_users_index from "../functions/users/index.js";
+import type * as functions_users_mutations from "../functions/users/mutations.js";
 import type * as functions_users_queries from "../functions/users/queries.js";
 import type * as functions_verdicts_actions from "../functions/verdicts/actions.js";
 import type * as functions_verdicts_index from "../functions/verdicts/index.js";
@@ -26,8 +27,13 @@ import type * as lib_constants_verdicts from "../lib/constants/verdicts.js";
 import type * as lib_llm_client from "../lib/llm/client.js";
 import type * as lib_llm_models from "../lib/llm/models.js";
 import type * as lib_llm_parser from "../lib/llm/parser.js";
+import type * as lib_permissions_helpers from "../lib/permissions/helpers.js";
+import type * as lib_permissions_index from "../lib/permissions/index.js";
+import type * as lib_permissions_permissions from "../lib/permissions/permissions.js";
+import type * as lib_permissions_roles from "../lib/permissions/roles.js";
 import type * as lib_prompts_chiefJudge from "../lib/prompts/chiefJudge.js";
 import type * as lib_prompts_judge from "../lib/prompts/judge.js";
+import type * as lib_sanitize from "../lib/sanitize.js";
 
 import type {
   ApiFromModules,
@@ -44,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   "functions/rateLimit/mutations": typeof functions_rateLimit_mutations;
   "functions/rateLimit/queries": typeof functions_rateLimit_queries;
   "functions/users/index": typeof functions_users_index;
+  "functions/users/mutations": typeof functions_users_mutations;
   "functions/users/queries": typeof functions_users_queries;
   "functions/verdicts/actions": typeof functions_verdicts_actions;
   "functions/verdicts/index": typeof functions_verdicts_index;
@@ -54,8 +61,13 @@ declare const fullApi: ApiFromModules<{
   "lib/llm/client": typeof lib_llm_client;
   "lib/llm/models": typeof lib_llm_models;
   "lib/llm/parser": typeof lib_llm_parser;
+  "lib/permissions/helpers": typeof lib_permissions_helpers;
+  "lib/permissions/index": typeof lib_permissions_index;
+  "lib/permissions/permissions": typeof lib_permissions_permissions;
+  "lib/permissions/roles": typeof lib_permissions_roles;
   "lib/prompts/chiefJudge": typeof lib_prompts_chiefJudge;
   "lib/prompts/judge": typeof lib_prompts_judge;
+  "lib/sanitize": typeof lib_sanitize;
 }>;
 
 /**

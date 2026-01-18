@@ -1,10 +1,11 @@
-import { Brain, Sparkles, Zap } from 'lucide-react'
+import { Brain, Sparkles, Zap, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const config = {
   Claude: { icon: Brain, bg: 'bg-amber-100', text: 'text-amber-700' },
   GPT: { icon: Sparkles, bg: 'bg-emerald-100', text: 'text-emerald-700' },
   Gemini: { icon: Zap, bg: 'bg-blue-100', text: 'text-blue-700' },
+  Grok: { icon: Search, bg: 'bg-rose-100', text: 'text-rose-700' },
 }
 
 export function JudgeAvatar({

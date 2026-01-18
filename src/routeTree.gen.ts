@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as LogoutRouteImport } from './routes/logout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VerdictShareIdRouteImport } from './routes/verdict.$shareId'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
@@ -18,6 +19,11 @@ import { Route as ApiAuthCallbackRouteImport } from './routes/api/auth/callback'
 const StatsRoute = StatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogoutRoute = LogoutRouteImport.update({
+  id: '/logout',
+  path: '/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,6 +49,7 @@ const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/logout': typeof LogoutRoute
   '/stats': typeof StatsRoute
   '/verdict/$shareId': typeof VerdictShareIdRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/logout': typeof LogoutRoute
   '/stats': typeof StatsRoute
   '/verdict/$shareId': typeof VerdictShareIdRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/logout': typeof LogoutRoute
   '/stats': typeof StatsRoute
   '/verdict/$shareId': typeof VerdictShareIdRoute
   '/api/auth/callback': typeof ApiAuthCallbackRoute
@@ -67,6 +76,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/logout'
     | '/stats'
     | '/verdict/$shareId'
     | '/api/auth/callback'
@@ -74,6 +84,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/logout'
     | '/stats'
     | '/verdict/$shareId'
     | '/api/auth/callback'
@@ -81,6 +92,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/logout'
     | '/stats'
     | '/verdict/$shareId'
     | '/api/auth/callback'
@@ -89,6 +101,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LogoutRoute: typeof LogoutRoute
   StatsRoute: typeof StatsRoute
   VerdictShareIdRoute: typeof VerdictShareIdRoute
   ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
@@ -102,6 +115,13 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logout': {
+      id: '/logout'
+      path: '/logout'
+      fullPath: '/logout'
+      preLoaderRoute: typeof LogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -137,6 +157,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LogoutRoute: LogoutRoute,
   StatsRoute: StatsRoute,
   VerdictShareIdRoute: VerdictShareIdRoute,
   ApiAuthCallbackRoute: ApiAuthCallbackRoute,

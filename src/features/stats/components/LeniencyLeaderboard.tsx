@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress'
 import { JudgeAvatar } from '@/features/verdict/components/JudgeAvatar'
 
 interface ModelStat {
+  modelId: string
   modelName: string
   leniencyScore: number
   totalVerdicts: number
@@ -31,7 +32,7 @@ export function LeniencyLeaderboard({ stats }: { stats: ModelStat[] }) {
               : 0
 
           return (
-            <div key={stat.modelName} className="flex items-center gap-4">
+            <div key={stat.modelId} className="flex items-center gap-4">
               <span className="text-lg font-bold text-muted-foreground w-6">
                 {i + 1}.
               </span>

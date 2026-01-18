@@ -30,54 +30,49 @@ export function JudgeCard({ judge }: JudgeCardProps) {
   const config = JUDGES.find((j) => j.name === judge.modelName)
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <JudgeAvatar name={judge.modelName} />
-
+    <Card className="h-full">
+      <CardContent className="p-3 flex flex-col h-full">
+        {/* Header: Avatar + Name + Verdict */}
+        <div className="flex items-center gap-2 mb-2">
+          <JudgeAvatar name={judge.modelName} size="sm" />
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-1">
-              <div>
-                <span className="font-semibold">{judge.modelName}</span>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {config?.personality}
-                </span>
-              </div>
-              <VerdictBadge
-                verdict={normalizeVerdictCode(judge.verdict)}
-                size="sm"
-              />
-            </div>
-
-            <p className="text-sm text-muted-foreground mb-2">{judge.summary}</p>
-
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-              <span>{judge.confidence}% confident</span>
-            </div>
-
-            <Collapsible open={open} onOpenChange={setOpen}>
-              <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-                {open ? 'Hide' : 'Show'} full reasoning
-                <ChevronDown
-                  className={cn(
-                    'h-3 w-3 transition-transform',
-                    open && 'rotate-180'
-                  )}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2 pt-2 border-t">
-                <p className="text-sm mb-2">{judge.reasoning}</p>
-                <ul className="space-y-1">
-                  {judge.keyPoints.map((p, i) => (
-                    <li key={i} className="text-xs flex gap-1">
-                      <span>•</span> {p}
-                    </li>
-                  ))}
-                </ul>
-              </CollapsibleContent>
-            </Collapsible>
+            <div className="font-semibold text-sm truncate">{judge.modelName}</div>
+            <div className="text-[10px] text-muted-foreground">{config?.personality}</div>
           </div>
+          <VerdictBadge verdict={normalizeVerdictCode(judge.verdict)} size="sm" />
         </div>
+
+        {/* Summary */}
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-2 flex-1">
+          {judge.summary}
+        </p>
+
+        {/* Confidence + Expand */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+          <span>{judge.confidence}% confident</span>
+          <Collapsible open={open} onOpenChange={setOpen}>
+            <CollapsibleTrigger className="flex items-center gap-0.5 hover:text-foreground">
+              {open ? 'Less' : 'More'}
+              <ChevronDown
+                className={cn('h-3 w-3 transition-transform', open && 'rotate-180')}
+              />
+            </CollapsibleTrigger>
+          </Collapsible>
+        </div>
+
+        {/* Expanded Content */}
+        <Collapsible open={open} onOpenChange={setOpen}>
+          <CollapsibleContent className="mt-2 pt-2 border-t">
+            <p className="text-xs mb-2">{judge.reasoning}</p>
+            <ul className="space-y-0.5">
+              {judge.keyPoints.map((p, i) => (
+                <li key={i} className="text-[10px] flex gap-1">
+                  <span>•</span> {p}
+                </li>
+              ))}
+            </ul>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   )

@@ -1,6 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+    "routes": [
+    {
+      "pattern": "aita.jessewalberg.com",
+      "custom_domain": true
+    },
+  ],
+  "name": "aita",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry"

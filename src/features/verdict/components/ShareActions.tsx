@@ -13,7 +13,7 @@ export function ShareActions({ shareId, verdict }: ShareActionsProps) {
   const [copied, setCopied] = useState(false)
   const shareUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/v/${shareId}`
+      ? `${window.location.origin}/verdict/${shareId}`
       : ''
 
   async function handleCopy() {

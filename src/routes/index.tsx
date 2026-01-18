@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from 'convex/react'
 import { api } from '../../convex/_generated/api'
+import { ROLES } from '../../convex/lib/permissions'
 import { Gavel, Scale, Sparkles, ArrowRight } from 'lucide-react'
 import { VerdictForm } from '@/features/verdict/components/VerdictForm'
+import { RecentVerdicts } from '@/features/verdict/components/RecentVerdicts'
 import { useVisitorId } from '@/hooks/useVisitorId'
 import { Route as RootRoute } from './__root'
 
@@ -58,7 +60,11 @@ function App() {
     userId ? { workosUserId: userId } : 'skip'
   )
 
-  const isPro = userRecord?.tier === 'pro'
+  // Compute unlimited access from role (with tier fallback for backwards compat)
+  const hasUnlimitedAccess =
+    userRecord?.role === ROLES.PRO ||
+    userRecord?.role === ROLES.ADMIN ||
+    userRecord?.tier === 'pro'
   const isSignedIn = !!userId
   const dailyLimit = isSignedIn ? 3 : 2
   const remaining = usage?.remaining ?? dailyLimit
@@ -84,12 +90,12 @@ function App() {
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold leading-[0.95] tracking-tight font-serif">
                 Your story.
                 <br />
-                Three judges.
+                Four judges.
                 <br />
                 One ruling.
               </h1>
               <p className="text-lg md:text-xl text-white/70 max-w-xl">
-                3 AI judges. 1 ruling. Your verdict awaits. Get clarity fast or
+                4 AI judges. 1 ruling. Your verdict awaits. Get clarity fast or
                 summon the full panel for a deeper debate.
               </p>
             </div>
@@ -122,7 +128,9 @@ function App() {
             <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
               <VerdictForm
                 userId={userId}
-                isPro={isPro}
+                userTier={userRecord?.tier}
+                userRole={userRecord?.role}
+                hasUnlimitedAccess={hasUnlimitedAccess}
                 remaining={remaining}
                 limit={dailyLimit}
                 isSignedIn={isSignedIn}
@@ -141,7 +149,7 @@ function App() {
             {
               title: 'Step 2: Judges weigh in',
               detail:
-                'Empathy, logic, and practicality collide. Three perspectives, no fluff.',
+                'Empathy, logic, practicality, and skepticism collide. Four perspectives, no fluff.',
             },
             {
               title: 'Step 3: Chief Judge rules',
@@ -159,6 +167,8 @@ function App() {
             </div>
           ))}
         </section>
+
+        <RecentVerdicts />
       </main>
     </div>
   )

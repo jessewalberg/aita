@@ -47,7 +47,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_shareId", ["shareId"])
-    .index("by_userId", ["userId", "createdAt"]),
+    .index("by_userId", ["userId", "createdAt"])
+    .index("by_public_createdAt", ["isPublic", "createdAt"]),
 
   dailyUsage: defineTable({
     identifier: v.string(),
@@ -75,6 +76,10 @@ export default defineSchema({
     workosUserId: v.string(),
     email: v.string(),
     tier: v.union(v.literal("free"), v.literal("pro")),
+    // Role for permissions (optional for backwards compatibility)
+    role: v.optional(
+      v.union(v.literal("user"), v.literal("pro"), v.literal("admin"))
+    ),
     createdAt: v.number(),
   }).index("by_workosUserId", ["workosUserId"]),
 });
