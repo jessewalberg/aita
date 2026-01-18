@@ -16,7 +16,8 @@
   // Non-sensitive env vars (committed to repo)
   "vars": {
     "WORKOS_REDIRECT_URI": "https://aita.jessewalberg.com/api/auth/callback",
-    "VITE_WORKOS_REDIRECT_URI": "https://aita.jessewalberg.com/api/auth/callback"
+    "VITE_WORKOS_REDIRECT_URI": "https://aita.jessewalberg.com/api/auth/callback",
+    "VITE_CONVEX_URL": "https://greedy-spaniel-422.convex.cloud"
   }
   // Sensitive vars set via: wrangler secret put <NAME>
   // - WORKOS_CLIENT_ID
