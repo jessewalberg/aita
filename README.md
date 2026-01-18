@@ -1,312 +1,175 @@
-Welcome to your new TanStack app! 
+# AITA Verdict: Panel Mode
 
-# Getting Started
+> 4 AI judges debate your situation. A Chief Judge delivers the final ruling.
 
-To run this application:
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![TanStack](https://img.shields.io/badge/TanStack-Start-ff4154)](https://tanstack.com/start)
+[![Convex](https://img.shields.io/badge/Convex-Backend-8b5cf6)](https://convex.dev/)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-f38020?logo=cloudflare)](https://workers.cloudflare.com/)
+
+---
+
+## The Concept
+
+*"I asked 4 AIs if I was the asshole. They disagreed."*
+
+Submit your interpersonal conflict and watch as 4 AI judges with distinct personalities analyze your situation in parallel. Then a Chief Judge synthesizes their arguments and delivers the final verdict.
+
+---
+
+## The Panel
+
+| Judge | Personality | Approach |
+|-------|-------------|----------|
+| **Claude** | Empathetic | Considers emotional context |
+| **GPT** | Logical | Focuses on facts and fairness |
+| **Gemini** | Practical | Seeks real-world solutions |
+| **Grok** | Skeptical | Questions motives |
+| **Chief** | Synthesizer | Weighs all arguments |
+
+---
+
+## Verdicts
+
+| Code | Meaning |
+|------|---------|
+| **YTA** | You're The A-hole |
+| **NTA** | Not The A-hole |
+| **ESH** | Everyone Sucks Here |
+| **NAH** | No A-holes Here |
+| **INFO** | Need More Info |
+
+---
+
+## Tech Stack
+
+- **Framework**: TanStack Start (React + SSR)
+- **Backend**: Convex (real-time database + serverless)
+- **Auth**: WorkOS AuthKit
+- **LLM**: OpenRouter (Claude, GPT, Gemini, Grok)
+- **UI**: shadcn/ui + Tailwind CSS v4
+- **Edge**: Cloudflare Workers
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+- Convex account
+- WorkOS account
+- OpenRouter API key
+
+### Installation
 
 ```bash
+# Clone the repo
+git clone https://github.com/yourusername/aita.git
+cd aita
+
+# Install dependencies
 pnpm install
+
+# Copy environment template
+cp .env.example .env.local
+```
+
+### Environment Variables
+
+Create `.env.local` with:
+
+```env
+# Convex
+CONVEX_DEPLOYMENT=dev:your-deployment
+VITE_CONVEX_URL=https://your-deployment.convex.cloud
+
+# WorkOS Auth
+WORKOS_CLIENT_ID=client_xxx
+WORKOS_API_KEY=sk_test_xxx
+WORKOS_REDIRECT_URI=http://localhost:3000/api/auth/callback
+WORKOS_COOKIE_PASSWORD=your-32-character-secret-key-here
+
+# Client-side WorkOS
+VITE_WORKOS_CLIENT_ID=client_xxx
+VITE_WORKOS_REDIRECT_URI=http://localhost:3000/api/auth/callback
+
+# OpenRouter
+OPENROUTER_API_KEY=sk-or-v1-xxx
+```
+
+### Development
+
+```bash
+# Terminal 1: Convex backend
+npx convex dev
+
+# Terminal 2: Vite frontend
 pnpm dev
 ```
 
-# Building For Production
+Open [http://localhost:3000](http://localhost:3000)
 
-To build this application for production:
+---
 
-```bash
-pnpm build
-```
+## Scripts
 
-## Testing
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server on port 3000 |
+| `pnpm build` | Build for production |
+| `pnpm test` | Run tests |
+| `pnpm lint` | Lint with Biome |
+| `pnpm deploy:convex` | Deploy Convex functions |
+| `pnpm deploy` | Deploy Convex + build |
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+---
 
-```bash
-pnpm test
-```
+## Deployment
 
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
+### Convex Backend
 
 ```bash
-pnpm lint
-pnpm format
-pnpm check
+pnpm deploy:convex
 ```
 
+### Cloudflare Pages
 
-## Setting up WorkOS
+1. Connect your GitHub repo to Cloudflare Pages
+2. Configure build settings:
+   - **Build command**: `npx convex deploy && pnpm run build`
+   - **Build output**: `dist`
+3. Add environment variables in Cloudflare dashboard
+4. Deploy on push to main
 
-- Set the `VITE_WORKOS_CLIENT_ID` in your `.env.local`.
+---
 
+## Features
 
-## Setting up Convex
+- **Parallel Judgment**: 4 judges analyze simultaneously
+- **Tie-Breaking**: Chief Judge resolves 2-2 splits
+- **Rate Limiting**: 2/day free, 3/day signed-in, unlimited Pro
+- **Privacy Control**: Public or private verdicts
+- **Share Links**: Unique URLs for each verdict
+- **Analytics**: Judge leniency leaderboard
+- **Security**: Prompt injection protection
 
-- Set the `VITE_CONVEX_URL` and `CONVEX_DEPLOYMENT` environment variables in your `.env.local`. (Or run `npx convex init` to set them automatically.)
-- Run `npx convex dev` to start the Convex server.
+---
 
+## Architecture
 
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for:
 
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+- System diagrams (Mermaid)
+- Database schema
+- Authentication flow
+- Rate limiting logic
+- Security measures
+- Directory structure
 
-### Adding A Route
+---
 
-To add a new route to your application just add another a new file in the `./src/routes` directory.
+## License
 
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-pnpm add @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-pnpm add @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+MIT
