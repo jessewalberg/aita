@@ -141,29 +141,76 @@ function StatsPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Fun Facts</CardTitle>
+                  <CardTitle>Quick Stats</CardTitle>
                   <CardDescription>
-                    Quick insights across {totalVerdicts} total verdicts.
+                    Highlights from {totalVerdicts} total verdicts.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <FactRow
-                    label="Most lenient"
-                    value={mostLenient?.modelName}
-                    detail={mostLenient ? `${mostLenient.leniencyScore} score` : ''}
-                  />
-                  <FactRow
-                    label="Strictest"
-                    value={strictest?.modelName}
-                    detail={strictest ? `${strictest.leniencyScore} score` : ''}
-                  />
-                  <FactRow
-                    label="Most active"
-                    value={mostActive?.modelName}
-                    detail={
-                      mostActive ? `${mostActive.totalVerdicts} verdicts` : ''
-                    }
-                  />
+                <CardContent className="space-y-3">
+                  {mostLenient && (
+                    <div className="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+                      <JudgeAvatar name={mostLenient.modelName} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium uppercase tracking-wider text-emerald-400">
+                          Most Lenient
+                        </p>
+                        <p className="font-semibold">{mostLenient.modelName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-emerald-400">
+                          {mostLenient.totalVerdicts > 0
+                            ? Math.round(
+                                ((mostLenient.ntaCount + mostLenient.nahCount) /
+                                  mostLenient.totalVerdicts) *
+                                  100
+                              )
+                            : 0}
+                          %
+                        </p>
+                        <p className="text-[10px] text-white/50">sided with you</p>
+                      </div>
+                    </div>
+                  )}
+                  {strictest && (
+                    <div className="flex items-center gap-3 rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+                      <JudgeAvatar name={strictest.modelName} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium uppercase tracking-wider text-red-400">
+                          Strictest
+                        </p>
+                        <p className="font-semibold">{strictest.modelName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-red-400">
+                          {strictest.totalVerdicts > 0
+                            ? Math.round(
+                                (strictest.ytaCount / strictest.totalVerdicts) *
+                                  100
+                              )
+                            : 0}
+                          %
+                        </p>
+                        <p className="text-[10px] text-white/50">called YTA</p>
+                      </div>
+                    </div>
+                  )}
+                  {mostActive && (
+                    <div className="flex items-center gap-3 rounded-lg border border-violet-500/20 bg-violet-500/5 p-3">
+                      <JudgeAvatar name={mostActive.modelName} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium uppercase tracking-wider text-violet-400">
+                          Most Active
+                        </p>
+                        <p className="font-semibold">{mostActive.modelName}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-violet-400">
+                          {mostActive.totalVerdicts}
+                        </p>
+                        <p className="text-[10px] text-white/50">verdicts given</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -174,10 +221,22 @@ function StatsPage() {
               <CardHeader>
                 <CardTitle>Verdict Distribution</CardTitle>
                 <CardDescription>
-                  How each judge leans across verdict types.
+                  How each judge splits their verdicts — hover or tap bars for
+                  details.
                 </CardDescription>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2">
+                  {verdictOrder.map(({ key, color }) => (
+                    <span
+                      key={key}
+                      className="flex items-center gap-1.5 text-xs text-white/60"
+                    >
+                      <span className={`h-2.5 w-2.5 rounded-sm ${color}`} />
+                      {key}
+                    </span>
+                  ))}
+                </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-8">
                 {typedStats.map((stat) => {
                   const total = stat.totalVerdicts || 1
                   const counts: Record<string, number> = {
@@ -189,39 +248,55 @@ function StatsPage() {
                   }
 
                   return (
-                    <div key={stat.modelId} className="space-y-3">
+                    <div key={stat.modelId} className="space-y-2">
                       <div className="flex items-center gap-3">
                         <JudgeAvatar name={stat.modelName} size="sm" />
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{stat.modelName}</p>
                           <p className="text-xs text-muted-foreground">
-                            {stat.totalVerdicts} verdicts
+                            {stat.totalVerdicts} verdict
+                            {stat.totalVerdicts !== 1 ? 's' : ''}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex h-2 w-full overflow-hidden rounded-full bg-white/10">
+                      <div className="flex h-7 w-full overflow-hidden rounded-md bg-white/5">
                         {verdictOrder.map(({ key, color }) => {
                           const value = counts[key]
-                          const width = Math.round((value / total) * 100)
+                          const pct = Math.round((value / total) * 100)
+                          if (pct === 0) return null
                           return (
                             <div
                               key={key}
-                              className={color}
-                              style={{ width: `${width}%` }}
-                              title={`${key}: ${value}`}
-                            />
+                              className={`${color} relative flex items-center justify-center transition-all`}
+                              style={{ width: `${pct}%` }}
+                              title={`${VERDICT_CONFIG[key].label}: ${value} (${pct}%)`}
+                            >
+                              {pct >= 12 && (
+                                <span className="text-[10px] font-bold text-white drop-shadow-sm">
+                                  {pct}%
+                                </span>
+                              )}
+                            </div>
                           )
                         })}
                       </div>
 
-                      <div className="flex flex-wrap gap-3 text-xs text-white/70">
-                        {verdictOrder.map(({ key, color }) => (
-                          <span key={key} className="flex items-center gap-2">
-                            <span className={`h-2 w-2 rounded-full ${color}`} />
-                            {VERDICT_CONFIG[key].label}
-                          </span>
-                        ))}
+                      <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/50">
+                        {verdictOrder.map(({ key, color }) => {
+                          const value = counts[key]
+                          if (value === 0) return null
+                          const pct = Math.round((value / total) * 100)
+                          return (
+                            <span key={key} className="flex items-center gap-1.5">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${color}`}
+                              />
+                              {key}: {value}{' '}
+                              <span className="text-white/30">({pct}%)</span>
+                            </span>
+                          )
+                        })}
                       </div>
                     </div>
                   )
@@ -235,22 +310,3 @@ function StatsPage() {
   )
 }
 
-function FactRow({
-  label,
-  value,
-  detail,
-}: {
-  label: string
-  value?: string
-  detail?: string
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/5 p-3">
-      <div>
-        <p className="text-sm font-medium text-white/80">{label}</p>
-        <p className="text-base font-semibold">{value || '—'}</p>
-      </div>
-      <span className="text-xs text-white/60">{detail}</span>
-    </div>
-  )
-}
