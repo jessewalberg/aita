@@ -58,11 +58,11 @@ type ModelStat = {
 }
 
 const verdictOrder = [
-  { key: 'NTA', color: 'bg-emerald-500' },
-  { key: 'NAH', color: 'bg-blue-500' },
-  { key: 'ESH', color: 'bg-amber-500' },
-  { key: 'YTA', color: 'bg-red-500' },
-  { key: 'INFO', color: 'bg-zinc-400' },
+  { key: 'NTA', bg: 'bg-emerald-500', text: 'text-emerald-400' },
+  { key: 'NAH', bg: 'bg-blue-500', text: 'text-blue-400' },
+  { key: 'ESH', bg: 'bg-amber-500', text: 'text-amber-400' },
+  { key: 'YTA', bg: 'bg-red-500', text: 'text-red-400' },
+  { key: 'INFO', bg: 'bg-zinc-400', text: 'text-zinc-400' },
 ] as const
 
 function StatsPage() {
@@ -221,20 +221,8 @@ function StatsPage() {
               <CardHeader>
                 <CardTitle>Verdict Distribution</CardTitle>
                 <CardDescription>
-                  How each judge splits their verdicts — hover or tap bars for
-                  details.
+                  Breakdown of how each judge rules, verdict by verdict.
                 </CardDescription>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2">
-                  {verdictOrder.map(({ key, color }) => (
-                    <span
-                      key={key}
-                      className="flex items-center gap-1.5 text-xs text-white/60"
-                    >
-                      <span className={`h-2.5 w-2.5 rounded-sm ${color}`} />
-                      {key}
-                    </span>
-                  ))}
-                </div>
               </CardHeader>
               <CardContent className="space-y-8">
                 {typedStats.map((stat) => {
@@ -248,10 +236,10 @@ function StatsPage() {
                   }
 
                   return (
-                    <div key={stat.modelId} className="space-y-2">
+                    <div key={stat.modelId} className="space-y-3">
                       <div className="flex items-center gap-3">
                         <JudgeAvatar name={stat.modelName} size="sm" />
-                        <div className="flex-1">
+                        <div>
                           <p className="font-medium">{stat.modelName}</p>
                           <p className="text-xs text-muted-foreground">
                             {stat.totalVerdicts} verdict
@@ -260,41 +248,32 @@ function StatsPage() {
                         </div>
                       </div>
 
-                      <div className="flex h-7 w-full overflow-hidden rounded-md bg-white/5">
-                        {verdictOrder.map(({ key, color }) => {
+                      <div className="space-y-1.5">
+                        {verdictOrder.map(({ key, bg, text }) => {
                           const value = counts[key]
                           const pct = Math.round((value / total) * 100)
-                          if (pct === 0) return null
                           return (
-                            <div
-                              key={key}
-                              className={`${color} relative flex items-center justify-center transition-all`}
-                              style={{ width: `${pct}%` }}
-                              title={`${VERDICT_CONFIG[key].label}: ${value} (${pct}%)`}
-                            >
-                              {pct >= 12 && (
-                                <span className="text-[10px] font-bold text-white drop-shadow-sm">
-                                  {pct}%
-                                </span>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-white/50">
-                        {verdictOrder.map(({ key, color }) => {
-                          const value = counts[key]
-                          if (value === 0) return null
-                          const pct = Math.round((value / total) * 100)
-                          return (
-                            <span key={key} className="flex items-center gap-1.5">
+                            <div key={key} className="flex items-center gap-3">
                               <span
-                                className={`h-1.5 w-1.5 rounded-full ${color}`}
-                              />
-                              {key}: {value}{' '}
-                              <span className="text-white/30">({pct}%)</span>
-                            </span>
+                                className={`w-8 text-right text-xs font-semibold ${text}`}
+                              >
+                                {key}
+                              </span>
+                              <div className="flex-1 h-5 rounded bg-white/5 overflow-hidden">
+                                {pct > 0 && (
+                                  <div
+                                    className={`${bg} h-full rounded transition-all`}
+                                    style={{
+                                      width: `${Math.max(pct, 2)}%`,
+                                    }}
+                                  />
+                                )}
+                              </div>
+                              <span className="w-16 text-right text-xs tabular-nums text-white/70">
+                                {pct}%{' '}
+                                <span className="text-white/30">({value})</span>
+                              </span>
+                            </div>
                           )
                         })}
                       </div>
