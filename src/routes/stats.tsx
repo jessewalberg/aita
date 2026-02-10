@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/card'
 import { LeniencyLeaderboard } from '@/features/stats/components/LeniencyLeaderboard'
 import { JudgeAvatar } from '@/features/verdict/components/JudgeAvatar'
-import { VERDICT_CONFIG } from 'convex/lib/constants/verdicts'
 import { ArrowLeft, BarChart3 } from 'lucide-react'
 
 export const Route = createFileRoute('/stats')({
@@ -288,4 +287,3 @@ function StatsPage() {
     </div>
   )
 }
-
