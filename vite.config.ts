@@ -5,6 +5,7 @@ import viteReact from '@vitejs/plugin-react'
 import viteTsConfigPaths from 'vite-tsconfig-paths'
 import { fileURLToPath, URL } from 'url'
 
+import { sentryTanstackStart } from '@sentry/tanstackstart-react'
 import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
 
@@ -37,6 +38,11 @@ const config = defineConfig(({ mode }) => {
       tailwindcss(),
       tanstackStart(),
       viteReact(),
+      sentryTanstackStart({
+        org: env.SENTRY_ORG,
+        project: env.SENTRY_PROJECT,
+        authToken: env.SENTRY_AUTH_TOKEN,
+      }),
     ],
   }
 })
