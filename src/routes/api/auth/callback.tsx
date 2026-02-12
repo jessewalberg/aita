@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/cloudflare'
+import * as Sentry from '@sentry/core'
 import { createFileRoute } from '@tanstack/react-router'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'

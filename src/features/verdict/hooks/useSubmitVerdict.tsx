@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/tanstackstart-react'
+import * as Sentry from '@sentry/core'
 import { useState } from 'react'
 import { useAction } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'

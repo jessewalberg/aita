@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/cloudflare'
+import * as Sentry from '@sentry/core'
 import * as iron from 'iron-webcrypto'
 import { getConfig } from './config'
 import { getWorkOS } from './workos'
