@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/tanstackstart-react'
 import { useState } from 'react'
 import { useAction } from 'convex/react'
 import { useNavigate } from '@tanstack/react-router'
@@ -45,7 +46,7 @@ export function useSubmitVerdict() {
       if (message.includes('RATE_LIMITED')) {
         return { success: false, error: 'RATE_LIMITED' }
       }
-      console.error('Verdict submission failed:', e)
+      Sentry.captureException(e)
       return { success: false, error: 'UNKNOWN' }
     } finally {
       setIsPending(false)

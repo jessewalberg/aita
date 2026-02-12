@@ -9,7 +9,8 @@
   "name": "aita",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "./src/server.ts",
+  "upload_source_maps": true,
   "observability": {
     "enabled": true
   },
@@ -25,4 +26,5 @@
   // - WORKOS_COOKIE_PASSWORD
   // - VITE_CONVEX_URL
   // - VITE_WORKOS_CLIENT_ID
+  // - SENTRY_DSN
 }

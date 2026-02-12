@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/tanstackstart-react'
 import { createRouter } from '@tanstack/react-router'
 
 // Import the generated route tree
@@ -12,6 +13,16 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
   })
+
+  if (!router.isServer && import.meta.env.PROD) {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
+      integrations: [
+        Sentry.tanstackRouterBrowserTracingIntegration(router),
+      ],
+      tracesSampleRate: 1.0,
+    })
+  }
 
   return router
 }

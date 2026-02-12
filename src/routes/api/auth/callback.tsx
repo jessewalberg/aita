@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/cloudflare'
 import { createFileRoute } from '@tanstack/react-router'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'
@@ -60,7 +61,7 @@ export const Route = createFileRoute('/api/auth/callback')({
                 })
               }
             } catch (e) {
-              console.error('Failed to upsert user in Convex:', e)
+              Sentry.captureException(e)
               // Don't fail login if Convex upsert fails
             }
 
@@ -81,7 +82,7 @@ export const Route = createFileRoute('/api/auth/callback')({
               },
             })
           } catch (error) {
-            console.error('Auth callback error:', error)
+            Sentry.captureException(error)
             return errorResponse()
           }
         }

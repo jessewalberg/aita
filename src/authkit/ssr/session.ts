@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/cloudflare'
 import * as iron from 'iron-webcrypto'
 import { getConfig } from './config'
 import { getWorkOS } from './workos'
@@ -133,7 +134,7 @@ export async function terminateSession(sessionId: string): Promise<string> {
     await workos.userManagement.revokeSession({ sessionId })
   } catch (e) {
     // Session may already be invalid, continue with logout
-    console.error('Failed to revoke session:', e)
+    Sentry.captureException(e)
   }
 
   // Return a cookie that clears the session
