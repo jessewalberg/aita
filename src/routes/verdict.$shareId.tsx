@@ -51,7 +51,7 @@ export const Route = createFileRoute('/verdict/$shareId')({
     return { meta }
   },
   component: VerdictPage,
-  head: ({ params, loaderData }) => {
+  head: ({ loaderData }) => {
     const meta = loaderData?.meta
     const verdictCode = meta?.verdict ?? null
     const info = verdictCode ? VERDICT_META[verdictCode] : null
@@ -60,17 +60,18 @@ export const Route = createFileRoute('/verdict/$shareId')({
     const splitText = isPanel && meta?.panelSplit ? ` (${meta.panelSplit})` : ''
 
     const title = info
-      ? `The verdict is in: ${verdictCode} ${info.emoji}`
-      : 'AITA Verdict'
+      ? `${verdictCode} ${info.emoji} — ${info.label}`
+      : 'AITA Verdict — The Panel Will See You Now'
 
     const description = info
       ? isPanel
-        ? `3 AI judges ruled${splitText}: ${info.label}. See the full panel breakdown.`
-        : `The judge has spoken: ${info.label}. Read the full ruling.`
-      : 'Read the panel ruling and see how each judge weighed the facts.'
+        ? `The panel ruled${splitText}: ${info.label}. Read the full breakdown.`
+        : `The judge ruled: ${info.label}. Read the full verdict.`
+      : 'AI judges weigh in on your situation. Get your verdict now.'
 
-    const imageUrl = `https://aita.jessewalberg.com/api/og/${params.shareId}`
-    const pageUrl = `https://aita.jessewalberg.com/verdict/${params.shareId}`
+    const ogImage = verdictCode
+      ? `https://aita.jessewalberg.com/og/${verdictCode.toLowerCase()}.png`
+      : 'https://aita.jessewalberg.com/og/default.png'
 
     return {
       meta: [
@@ -79,15 +80,14 @@ export const Route = createFileRoute('/verdict/$shareId')({
         { property: 'og:title', content: title },
         { property: 'og:description', content: description },
         { property: 'og:type', content: 'article' },
-        { property: 'og:url', content: pageUrl },
-        { property: 'og:image', content: imageUrl },
+        { property: 'og:image', content: ogImage },
         { property: 'og:image:width', content: '1200' },
         { property: 'og:image:height', content: '630' },
         { property: 'og:site_name', content: 'AITA Verdict' },
         { name: 'twitter:card', content: 'summary_large_image' },
         { name: 'twitter:title', content: title },
         { name: 'twitter:description', content: description },
-        { name: 'twitter:image', content: imageUrl },
+        { name: 'twitter:image', content: ogImage },
       ],
     }
   },

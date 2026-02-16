@@ -17,7 +17,7 @@ export const Route = createFileRoute('/')({
       },
       {
         name: 'description',
-        content: '3 AI judges. 1 ruling. Your verdict awaits.',
+        content: '4 AI judges. 1 ruling. Your verdict awaits.',
       },
       {
         property: 'og:title',
@@ -25,7 +25,7 @@ export const Route = createFileRoute('/')({
       },
       {
         property: 'og:description',
-        content: '3 AI judges. 1 ruling. Your verdict awaits.',
+        content: '4 AI judges. 1 ruling. Your verdict awaits.',
       },
       {
         property: 'og:image',

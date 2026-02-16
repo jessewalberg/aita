@@ -9,6 +9,6 @@
   <rect width="1200" height="630" fill="url(#bg)" />
   <g fill="#ffffff" font-family="Georgia, serif">
     <text x="80" y="220" font-size="64" font-weight="600">AITA Verdict</text>
-    <text x="80" y="310" font-size="32" opacity="0.75">3 AI judges. 1 ruling. Your verdict awaits.</text>
+    <text x="80" y="310" font-size="32" opacity="0.75">4 AI judges. 1 ruling. Your verdict awaits.</text>
   </g>
 </svg>
