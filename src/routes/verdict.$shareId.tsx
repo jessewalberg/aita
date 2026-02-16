@@ -69,7 +69,7 @@ export const Route = createFileRoute('/verdict/$shareId')({
         : `The judge has spoken: ${info.label}. Read the full ruling.`
       : 'Read the panel ruling and see how each judge weighed the facts.'
 
-    const imageUrl = `/api/og/${params.shareId}`
+    const imageUrl = `https://aita.jessewalberg.com/api/og/${params.shareId}`
     const pageUrl = `https://aita.jessewalberg.com/verdict/${params.shareId}`
 
     return {

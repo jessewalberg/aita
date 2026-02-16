@@ -1,8 +1,23 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '../../../../convex/_generated/api'
+import { initWasm, Resvg } from '@resvg/resvg-wasm'
+// @ts-expect-error -- wasm import
+import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm'
 
-const VERDICT_COLORS: Record<string, { bg: string; text: string; accent: string }> = {
+let wasmInitialized = false
+
+async function ensureWasm() {
+  if (!wasmInitialized) {
+    await initWasm(resvgWasm)
+    wasmInitialized = true
+  }
+}
+
+const VERDICT_COLORS: Record<
+  string,
+  { bg: string; text: string; accent: string }
+> = {
   YTA: { bg: '#7f1d1d', text: '#fecaca', accent: '#ef4444' },
   NTA: { bg: '#064e3b', text: '#a7f3d0', accent: '#10b981' },
   ESH: { bg: '#78350f', text: '#fde68a', accent: '#f59e0b' },
@@ -18,14 +33,6 @@ const VERDICT_LABELS: Record<string, string> = {
   INFO: 'Need More Info',
 }
 
-const VERDICT_EMOJIS: Record<string, string> = {
-  YTA: '😬',
-  NTA: '✅',
-  ESH: '🤦',
-  NAH: '🤝',
-  INFO: '❓',
-}
-
 function escapeXml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -37,7 +44,7 @@ function escapeXml(str: string): string {
 
 function truncate(str: string, max: number): string {
   if (str.length <= max) return str
-  return str.slice(0, max - 1) + '…'
+  return str.slice(0, max - 1) + '...'
 }
 
 function generateOgSvg(verdict: {
@@ -45,15 +52,14 @@ function generateOgSvg(verdict: {
   mode: string
   panelSplit?: string
   situation: string
-  summary: string
 }) {
   const code = verdict.verdict
   const colors = VERDICT_COLORS[code] ?? VERDICT_COLORS.INFO
   const label = VERDICT_LABELS[code] ?? code
-  const emoji = VERDICT_EMOJIS[code] ?? ''
   const isPanel = verdict.mode === 'panel'
   const modeText = isPanel ? 'Panel Verdict' : 'Single Judge'
-  const splitText = isPanel && verdict.panelSplit ? `${verdict.panelSplit} decision` : ''
+  const splitText =
+    isPanel && verdict.panelSplit ? `${verdict.panelSplit} decision` : ''
   const situationPreview = escapeXml(truncate(verdict.situation, 90))
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
@@ -74,9 +80,6 @@ function generateOgSvg(verdict: {
   <!-- Verdict code badge -->
   <rect x="80" y="80" width="220" height="100" rx="16" fill="${colors.bg}" />
   <text x="190" y="148" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="800" fill="${colors.accent}" text-anchor="middle">${escapeXml(code)}</text>
-
-  <!-- Emoji -->
-  <text x="330" y="150" font-size="64">${emoji}</text>
 
   <!-- Verdict label -->
   <text x="80" y="240" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="700" fill="#ffffff">${escapeXml(label)}</text>
@@ -99,6 +102,24 @@ function generateOgSvg(verdict: {
 </svg>`
 }
 
+function generateDefaultSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f172a" />
+  <text x="600" y="280" font-family="Georgia, serif" font-size="64" font-weight="600" fill="#ffffff" text-anchor="middle">AITA Verdict</text>
+  <text x="600" y="350" font-family="system-ui, sans-serif" font-size="32" fill="#94a3b8" text-anchor="middle">3 AI judges. 1 ruling. Your verdict awaits.</text>
+</svg>`
+}
+
+async function svgToPng(svg: string): Promise<Uint8Array> {
+  await ensureWasm()
+  const resvg = new Resvg(svg, {
+    fitTo: { mode: 'width', value: 1200 },
+  })
+  const rendered = resvg.render()
+  const png = rendered.asPng()
+  return png
+}
+
 export const Route = createFileRoute('/api/og/$shareId')({
   server: {
     handlers: {
@@ -112,36 +133,31 @@ export const Route = createFileRoute('/api/og/$shareId')({
           const convex = new ConvexHttpClient(convexUrl)
           const verdict = await convex.query(
             api.functions.verdicts.queries.getByShareId,
-            { shareId: params.shareId }
+            { shareId: params.shareId },
           )
 
+          let svg: string
+          let cacheMaxAge: number
+
           if (!verdict) {
-            // Return default OG image for missing verdicts
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <rect width="1200" height="630" fill="#0f172a" />
-  <text x="600" y="280" font-family="Georgia, serif" font-size="64" font-weight="600" fill="#ffffff" text-anchor="middle">AITA Verdict</text>
-  <text x="600" y="350" font-family="system-ui, sans-serif" font-size="32" fill="#94a3b8" text-anchor="middle">3 AI judges. 1 ruling. Your verdict awaits.</text>
-</svg>`
-            return new Response(svg, {
-              headers: {
-                'Content-Type': 'image/svg+xml',
-                'Cache-Control': 'public, max-age=60',
-              },
+            svg = generateDefaultSvg()
+            cacheMaxAge = 60
+          } else {
+            svg = generateOgSvg({
+              verdict: verdict.verdict,
+              mode: verdict.mode,
+              panelSplit: verdict.panelSplit,
+              situation: verdict.situation,
             })
+            cacheMaxAge = 3600
           }
 
-          const svg = generateOgSvg({
-            verdict: verdict.verdict,
-            mode: verdict.mode,
-            panelSplit: verdict.panelSplit,
-            situation: verdict.situation,
-            summary: verdict.summary,
-          })
+          const png = await svgToPng(svg)
 
-          return new Response(svg, {
+          return new Response(png.buffer as ArrayBuffer, {
             headers: {
-              'Content-Type': 'image/svg+xml',
-              'Cache-Control': 'public, max-age=3600',
+              'Content-Type': 'image/png',
+              'Cache-Control': `public, max-age=${cacheMaxAge}`,
             },
           })
         } catch {

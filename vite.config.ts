@@ -27,6 +27,7 @@ const config = defineConfig(({ mode }) => {
       'process.env.WORKOS_COOKIE_PASSWORD': JSON.stringify(env.WORKOS_COOKIE_PASSWORD),
       'process.env.WORKOS_API_HOSTNAME': JSON.stringify(env.WORKOS_API_HOSTNAME),
       'process.env.WORKOS_COOKIE_NAME': JSON.stringify(env.WORKOS_COOKIE_NAME),
+      'process.env.VITE_CONVEX_URL': JSON.stringify(env.VITE_CONVEX_URL),
     },
     plugins: [
       devtools(),
