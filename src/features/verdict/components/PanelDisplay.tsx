@@ -10,6 +10,7 @@ import { Link } from '@tanstack/react-router'
 import { Users, Gavel } from 'lucide-react'
 import { VERDICT_CONFIG } from 'convex/lib/constants/verdicts'
 import { normalizeVerdictCode, type PanelVerdict } from './verdictUtils'
+import { OriginalQuerySection } from './OriginalQuerySection'
 
 interface PanelDisplayProps {
   verdict: PanelVerdict
@@ -36,6 +37,8 @@ export function PanelDisplay({ verdict }: PanelDisplayProps) {
           </span>
         </div>
       </div>
+
+      <OriginalQuerySection situation={verdict.situation} />
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {verdict.panelVerdicts.map((pv) => (

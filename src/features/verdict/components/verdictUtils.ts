@@ -1,6 +1,7 @@
 import { VERDICT_CONFIG, type VerdictCode } from 'convex/lib/constants/verdicts'
 
 export type PanelVerdict = {
+  situation: string
   panelVerdicts: Array<{
     modelName: string
     verdict: string
@@ -22,6 +23,7 @@ export type PanelVerdict = {
 }
 
 export type SingleVerdict = {
+  situation: string
   verdict: string
   confidence: number
   summary: string

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Link } from '@tanstack/react-router'
 import { VERDICT_CONFIG } from 'convex/lib/constants/verdicts'
 import { normalizeVerdictCode, type SingleVerdict } from './verdictUtils'
+import { OriginalQuerySection } from './OriginalQuerySection'
 
 interface SingleVerdictCardProps {
   verdict: SingleVerdict
@@ -25,6 +26,8 @@ export function SingleVerdictCard({ verdict }: SingleVerdictCardProps) {
           <ConfidenceMeter confidence={verdict.confidence} />
         </div>
       </div>
+
+      <OriginalQuerySection situation={verdict.situation} />
 
       <Card>
         <CardContent className="p-6 space-y-4">
