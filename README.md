@@ -58,6 +58,7 @@ Submit your interpersonal conflict and watch as 4 AI judges with distinct person
 
 - Node.js 18+
 - pnpm
+- 1Password CLI (`op`) authenticated
 - Convex account
 - WorkOS account
 - OpenRouter API key
@@ -72,13 +73,19 @@ cd aita
 # Install dependencies
 pnpm install
 
-# Copy environment template
-cp .env.example .env.local
+# Pull .env.local from 1Password
+pnpm env:pull
 ```
 
 ### Environment Variables
 
-Create `.env.local` with:
+Preferred: pull `.env.local` from 1Password:
+
+```bash
+pnpm env:pull
+```
+
+Manual fallback: create `.env.local` with:
 
 ```env
 # Convex

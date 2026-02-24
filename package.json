@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "env:pull": "./scripts/pull-env-from-1password.sh",
     "dev": "vite dev --port 3000",
     "build": "npx convex codegen && vite build && tsc --noEmit",
     "preview": "vite preview",

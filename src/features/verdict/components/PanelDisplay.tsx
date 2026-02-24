@@ -38,8 +38,8 @@ export function PanelDisplay({ verdict }: PanelDisplayProps) {
       </div>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {verdict.panelVerdicts.map((pv, i) => (
-          <JudgeCard key={i} judge={pv} />
+        {verdict.panelVerdicts.map((pv) => (
+          <JudgeCard key={pv.modelName} judge={pv} />
         ))}
       </div>
 
@@ -92,8 +92,8 @@ export function PanelDisplay({ verdict }: PanelDisplayProps) {
                     Key Points
                   </h3>
                   <ul className="space-y-1">
-                    {verdict.keyPoints.map((p, i) => (
-                      <li key={i} className="text-sm flex gap-2">
+                    {verdict.keyPoints.map((p) => (
+                      <li key={p} className="text-sm flex gap-2">
                         <span className="text-violet-400">•</span>
                         <span className="text-white/80">{p}</span>
                       </li>

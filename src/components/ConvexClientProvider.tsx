@@ -8,9 +8,12 @@ function getConvexUrl(): string {
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_CONVEX_URL) {
     return import.meta.env.VITE_CONVEX_URL
   }
+
+  const nodeProcess = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+
   // Try process.env (Cloudflare Workers runtime with nodejs_compat)
-  if (typeof process !== 'undefined' && process.env?.VITE_CONVEX_URL) {
-    return process.env.VITE_CONVEX_URL
+  if (nodeProcess?.env?.VITE_CONVEX_URL) {
+    return nodeProcess.env.VITE_CONVEX_URL
   }
   throw new Error('VITE_CONVEX_URL is not set')
 }

@@ -15,7 +15,6 @@ import {
   buildChiefJudgePrompt,
 } from "../../lib/prompts/chiefJudge";
 import {
-  fallbackJudgeResponse,
   parseChiefJudgeResponse,
   parseJudgeResponse,
   type ChiefJudgeResponse,
@@ -35,7 +34,6 @@ function getClient() {
 type PanelJudgeResult = JudgeResponse & {
   modelId: string;
   modelName: string;
-  success: boolean;
 };
 
 export const generatePanelVerdict = action({
@@ -66,15 +64,6 @@ export const generatePanelVerdict = action({
       : null;
     const hasUnlimitedAccess = hasUnlimitedVerdicts(userRecord);
 
-    // Atomic rate limit check and increment
-    const rateCheck = await ctx.runMutation(
-      api.functions.rateLimit.mutations.checkAndIncrement,
-      { identifier, hasUnlimitedAccess }
-    );
-    if (!rateCheck.allowed) {
-      throw new Error("RATE_LIMITED");
-    }
-
     // Run all 4 judges in parallel
     const judgePromises = JUDGES.map(async (judge) => {
       try {
@@ -94,21 +83,22 @@ export const generatePanelVerdict = action({
         const parsed = parseJudgeResponse(
           response.choices[0]?.message?.content ?? ""
         );
+        if (!parsed) {
+          console.error(`Judge ${judge.name} returned invalid JSON response`);
+          throw new Error("OPENROUTER_INVALID_RESPONSE");
+        }
 
         return {
           modelId: judge.id,
           modelName: judge.name,
-          ...(parsed ?? fallbackJudgeResponse()),
-          success: !!parsed,
+          ...parsed,
         };
       } catch (e) {
         console.error(`Judge ${judge.name} failed:`, e);
-        return {
-          modelId: judge.id,
-          modelName: judge.name,
-          ...fallbackJudgeResponse(),
-          success: false,
-        };
+        if (e instanceof Error && e.message === "OPENROUTER_INVALID_RESPONSE") {
+          throw e;
+        }
+        throw new Error("OPENROUTER_UNAVAILABLE");
       }
     });
 
@@ -127,20 +117,28 @@ export const generatePanelVerdict = action({
         max_tokens: 1500,
       });
 
-      chiefResult =
-        parseChiefJudgeResponse(chiefResponse.choices[0]?.message?.content ?? "") ??
-        createFallbackChiefResult(panelResults);
+      const parsedChief = parseChiefJudgeResponse(
+        chiefResponse.choices[0]?.message?.content ?? ""
+      );
+      if (!parsedChief) {
+        console.error("Chief Judge returned invalid JSON response");
+        throw new Error("OPENROUTER_INVALID_RESPONSE");
+      }
+      chiefResult = parsedChief;
     } catch (e) {
       console.error("Chief Judge failed:", e);
-      chiefResult = createFallbackChiefResult(panelResults);
+      if (e instanceof Error && e.message === "OPENROUTER_INVALID_RESPONSE") {
+        throw e;
+      }
+      throw new Error("OPENROUTER_UNAVAILABLE");
     }
 
     const shareId = nanoid(10);
 
-    // Save everything
-    await ctx.runMutation(api.functions.verdicts.mutations.create, {
+    await ctx.runMutation(api.functions.verdicts.mutations.createPanelVerdictAtomic, {
+      identifier,
+      hasUnlimitedAccess,
       situation: args.situation,
-      mode: "panel",
       panelVerdicts: panelResults.map((p) => ({
         modelId: p.modelId,
         modelName: p.modelName,
@@ -166,15 +164,6 @@ export const generatePanelVerdict = action({
       latencyMs: Date.now() - start,
     });
 
-    // Update model stats for each judge
-    for (const p of panelResults) {
-      await ctx.runMutation(api.functions.analytics.mutations.recordVerdict, {
-        modelId: p.modelId,
-        modelName: p.modelName,
-        verdict: p.verdict,
-      });
-    }
-
     return {
       shareId,
       panelVerdicts: panelResults,
@@ -182,83 +171,3 @@ export const generatePanelVerdict = action({
     };
   },
 });
-
-function createFallbackChiefResult(
-  panel: PanelJudgeResult[]
-): ChiefJudgeResponse {
-  const votes: Record<string, number> = {};
-  const confidenceByVerdict: Record<string, number[]> = {};
-
-  for (const p of panel) {
-    votes[p.verdict] = (votes[p.verdict] || 0) + 1;
-    if (!confidenceByVerdict[p.verdict]) {
-      confidenceByVerdict[p.verdict] = [];
-    }
-    confidenceByVerdict[p.verdict].push(p.confidence);
-  }
-
-  const sorted = Object.entries(votes).sort((a, b) => b[1] - a[1]);
-  const topCount = sorted[0]?.[1] ?? 0;
-  const secondCount = sorted[1]?.[1] ?? 0;
-  const numJudges = panel.length; // 4 judges
-
-  // Check for 2-2 tie
-  if (topCount === 2 && secondCount === 2) {
-    // Tie-breaker: use average confidence
-    const firstVerdict = sorted[0][0];
-    const secondVerdict = sorted[1][0];
-    const avgFirst =
-      confidenceByVerdict[firstVerdict].reduce((a, b) => a + b, 0) /
-      confidenceByVerdict[firstVerdict].length;
-    const avgSecond =
-      confidenceByVerdict[secondVerdict].reduce((a, b) => a + b, 0) /
-      confidenceByVerdict[secondVerdict].length;
-
-    const winner = avgFirst >= avgSecond ? firstVerdict : secondVerdict;
-
-    return {
-      verdict: winner as ChiefJudgeResponse["verdict"],
-      confidence: 55,
-      summary: "Panel tied 2-2. Chief broke the tie based on confidence.",
-      reasoning: "With a 2-2 split, the tie was broken by weighing confidence levels.",
-      keyPoints: ["Tie-breaker by confidence"],
-      synthesis: "Fallback tie-breaking synthesis.",
-      dissent: "Two judges disagreed with the final ruling.",
-      panelSplit: "2-2 (tie broken)",
-    };
-  }
-
-  // Check for no consensus (4-way or 3-way split)
-  const isNoConsensus = topCount === 1;
-  if (isNoConsensus) {
-    return {
-      verdict: "INFO",
-      confidence: 50,
-      summary: "Panel split with no majority.",
-      reasoning: "No consensus; fallback to INFO.",
-      keyPoints: ["No majority decision"],
-      synthesis: "Fallback synthesis.",
-      dissent: "",
-      panelSplit: "split",
-    };
-  }
-
-  // Clear majority (4-0, 3-1, or 2-1-1)
-  const winner = sorted[0]?.[0] ?? "INFO";
-  const minorityCount = numJudges - topCount;
-  const panelSplit = `${topCount}-${minorityCount}`;
-  const isUnanimous = topCount === numJudges;
-
-  return {
-    verdict: winner as ChiefJudgeResponse["verdict"],
-    confidence: isUnanimous ? 70 : topCount === 3 ? 65 : 60,
-    summary: isUnanimous
-      ? "Panel ruled unanimously."
-      : `Panel ruled ${panelSplit}.`,
-    reasoning: "Verdict based on majority vote.",
-    keyPoints: [isUnanimous ? "Unanimous decision" : "Majority decision"],
-    synthesis: "Fallback synthesis.",
-    dissent: isUnanimous ? "" : "Minority judge(s) disagreed.",
-    panelSplit,
-  };
-}

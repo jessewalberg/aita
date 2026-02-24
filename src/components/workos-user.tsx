@@ -40,7 +40,7 @@ export default function SignInButton({
 
   if (!signInUrl) {
     return (
-      <button className={buttonClasses} disabled>
+      <button type="button" className={buttonClasses} disabled>
         Loading...
       </button>
     )

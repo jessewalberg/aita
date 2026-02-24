@@ -32,7 +32,7 @@ export type SingleVerdict = {
 }
 
 export function isVerdictCode(value: string): value is VerdictCode {
-  return Object.prototype.hasOwnProperty.call(VERDICT_CONFIG, value)
+  return Object.hasOwn(VERDICT_CONFIG, value)
 }
 
 export function normalizeVerdictCode(value: string): VerdictCode {

@@ -65,8 +65,8 @@ export function JudgeCard({ judge }: JudgeCardProps) {
           <CollapsibleContent className="mt-2 pt-2 border-t">
             <p className="text-xs mb-2">{judge.reasoning}</p>
             <ul className="space-y-0.5">
-              {judge.keyPoints.map((p, i) => (
-                <li key={i} className="text-[10px] flex gap-1">
+              {judge.keyPoints.map((p) => (
+                <li key={p} className="text-[10px] flex gap-1">
                   <span>•</span> {p}
                 </li>
               ))}

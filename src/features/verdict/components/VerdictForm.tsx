@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
@@ -40,6 +40,7 @@ export function VerdictForm({
   const [situation, setSituation] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
   const [panelStep, setPanelStep] = useState(0)
+  const isPrivateId = useId()
   const visitorId = useVisitorId()
   const { mutate: submit, isPending } = useSubmitVerdict()
 
@@ -92,6 +93,11 @@ export function VerdictForm({
             ? "You've used all 3 free verdicts today. Upgrade to Pro for unlimited."
             : "You've used all 2 free verdicts today. Sign in for 1 more or upgrade to Pro.",
         })
+      } else if (result.error === 'OPENROUTER_FAILED') {
+        toast.error('Judges unavailable', {
+          description:
+            'OpenRouter is currently unavailable. Please try again in a moment. No verdict was saved.',
+        })
       } else {
         toast.error('Something went wrong', {
           description: 'The judges are unavailable. Please try again.',
@@ -136,13 +142,13 @@ export function VerdictForm({
 
           <div className="flex items-center gap-2">
             <Checkbox
-              id="isPrivate"
+              id={isPrivateId}
               checked={isPrivate}
               onCheckedChange={(checked) => setIsPrivate(checked === true)}
               disabled={isPending}
             />
             <label
-              htmlFor="isPrivate"
+              htmlFor={isPrivateId}
               className="text-sm text-muted-foreground cursor-pointer select-none"
             >
               Keep my verdict private

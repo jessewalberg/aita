@@ -16,7 +16,7 @@ type SubmitPayload = {
 
 type SubmitResult = {
   success: boolean
-  error?: 'RATE_LIMITED' | 'UNKNOWN'
+  error?: 'RATE_LIMITED' | 'OPENROUTER_FAILED' | 'UNKNOWN'
 }
 
 export function useSubmitVerdict() {
@@ -45,6 +45,12 @@ export function useSubmitVerdict() {
       const message = e instanceof Error ? e.message : String(e)
       if (message.includes('RATE_LIMITED')) {
         return { success: false, error: 'RATE_LIMITED' }
+      }
+      if (
+        message.includes('OPENROUTER_UNAVAILABLE') ||
+        message.includes('OPENROUTER_INVALID_RESPONSE')
+      ) {
+        return { success: false, error: 'OPENROUTER_FAILED' }
       }
       Sentry.captureException(e)
       return { success: false, error: 'UNKNOWN' }

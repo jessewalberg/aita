@@ -40,8 +40,8 @@ export function SingleVerdictCard({ verdict }: SingleVerdictCardProps) {
               Key Points
             </h3>
             <ul className="space-y-1">
-              {verdict.keyPoints.map((point, i) => (
-                <li key={i} className="text-sm flex gap-2">
+              {verdict.keyPoints.map((point) => (
+                <li key={point} className="text-sm flex gap-2">
                   <span className="text-emerald-600">✓</span>
                   {point}
                 </li>

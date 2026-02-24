@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { type VerdictCode } from 'convex/lib/constants/verdicts'
+import type { VerdictCode } from 'convex/lib/constants/verdicts'
 
 const colorClasses: Record<VerdictCode, string> = {
   YTA: 'bg-red-100 text-red-700 border-red-300',

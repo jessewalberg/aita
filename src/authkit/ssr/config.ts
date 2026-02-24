@@ -11,9 +11,11 @@ let config: AuthKitConfig | null = null
 
 // Helper to get env variable from either process.env or import.meta.env
 function getEnv(key: string): string | undefined {
+  const nodeProcess = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
+
   // Try process.env first (Node.js)
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key]
+  if (nodeProcess?.env?.[key]) {
+    return nodeProcess.env[key]
   }
   // Try import.meta.env (Vite)
   if (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env as Record<string, string>)[key]) {
@@ -40,7 +42,7 @@ export function configure(options: Partial<AuthKitConfig> = {}) {
     console.error('Config state:', {
       hasPassword: !!config.cookiePassword,
       passwordLength: config.cookiePassword?.length,
-      envCheck: getEnv('WORKOS_COOKIE_PASSWORD')?.substring(0, 5) + '...',
+      envCheck: `${getEnv('WORKOS_COOKIE_PASSWORD')?.substring(0, 5)}...`,
     })
     throw new Error('WORKOS_COOKIE_PASSWORD must be at least 32 characters')
   }
@@ -50,8 +52,11 @@ export function getConfig<K extends keyof AuthKitConfig>(key: K): AuthKitConfig[
   if (!config) {
     configure()
   }
+  if (!config) {
+    throw new Error('AuthKit config is not initialized')
+  }
 
-  const value = config![key]
+  const value = config[key]
 
   // Check required values
   const required: (keyof AuthKitConfig)[] = ['clientId', 'apiKey', 'redirectUri', 'cookiePassword']
@@ -66,5 +71,8 @@ export function getAllConfig(): AuthKitConfig {
   if (!config) {
     configure()
   }
-  return config!
+  if (!config) {
+    throw new Error('AuthKit config is not initialized')
+  }
+  return config
 }

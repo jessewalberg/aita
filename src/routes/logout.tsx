@@ -7,15 +7,8 @@ export const Route = createFileRoute('/logout')({
 
 function LogoutPage() {
   useEffect(() => {
-    // Clear the session cookie client-side
-    // The cookie name is 'wos-session' (from authkit config)
-    const cookieName = 'wos-session'
-
-    // Set cookie to expire immediately
-    document.cookie = `${cookieName}=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`
-
-    // Redirect to home after a brief moment
-    window.location.href = '/'
+    // Delegate cookie/session clearing to server-side logout handler.
+    window.location.href = '/api/auth/logout'
   }, [])
 
   return (
